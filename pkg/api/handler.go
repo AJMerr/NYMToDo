@@ -24,6 +24,7 @@ func New(s *store.Store) *Handler {
 
 func (h *Handler) RegisterRouter(r *router.Router) {
 	r.POST("/todos", h.createToDoHandler)
+	r.GET("/todos", h.getAllToDoHandler)
 }
 
 // Helper functions
@@ -60,6 +61,9 @@ func writeIndex(s *store.Store, ids []string) error {
 	return s.Set(indexKey, b)
 }
 
+// Handlers
+
+// POST
 func (h *Handler) createToDoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -115,4 +119,31 @@ func (h *Handler) createToDoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(t)
+}
+
+// GET all
+func (h *Handler) getAllToDoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	ids, err := readIndex(h.S)
+	if err != nil {
+		http.Error(w, "read_index_error", http.StatusInternalServerError)
+		return
+	}
+
+	out := make([]todo.ToDo, 0, len(ids))
+	for _, id := range ids {
+		if b, ok := h.S.Get(makeKey(id)); ok {
+			var t todo.ToDo
+			if err := json.Unmarshal(b, &t); err == nil {
+				out = append(out, t)
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(out)
 }
