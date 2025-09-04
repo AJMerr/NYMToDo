@@ -27,6 +27,7 @@ func (h *Handler) RegisterRouter(r *router.Router) {
 	r.POST("/todos", h.createToDoHandler)
 	r.GET("/todos", h.getAllToDoHandler)
 	r.GET("/todos/{id}", h.getToDoHandler)
+	r.DELETE("/todos{id}", h.deleteToDoHandler)
 }
 
 // Helper functions
@@ -61,6 +62,16 @@ func writeIndex(s *store.Store, ids []string) error {
 		return err
 	}
 	return s.Set(indexKey, b)
+}
+
+func removeID(ids []string, id string) []string {
+	out := make([]string, 0, len(ids))
+	for _, x := range ids {
+		if x != id {
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 // Handlers
@@ -153,28 +164,60 @@ func (h *Handler) getAllToDoHandler(w http.ResponseWriter, r *http.Request) {
 // GET by ID
 func (h *Handler) getToDoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		jsonutil.WriteError(w, http.StatusMethodNotAllowed, "{error: method_not_allowed}")
+		jsonutil.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed")
 		return
 	}
 
 	id := r.PathValue("id")
 	if id == "" {
-		jsonutil.WriteError(w, http.StatusNotFound, "{error: todo_not_found}")
+		jsonutil.WriteError(w, http.StatusNotFound, "todo_not_found")
 		return
 	}
 
 	key := makeKey(id)
-	bytes, ok := h.S.Get(key)
+	b, ok := h.S.Get(key)
 	if !ok {
-		jsonutil.WriteError(w, http.StatusNotFound, "{error: todo_not_found}")
+		jsonutil.WriteError(w, http.StatusNotFound, "todo_not_found")
 		return
 	}
 
 	var t todo.ToDo
-	err := json.Unmarshal(bytes, &t)
+	err := json.Unmarshal(b, &t)
 	if err != nil {
-		jsonutil.WriteError(w, http.StatusInternalServerError, "{error: decode_error}")
+		jsonutil.WriteError(w, http.StatusInternalServerError, "decode_error")
 		return
 	}
 	jsonutil.WriteJSON(w, http.StatusOK, t)
+}
+
+// DELETE
+func (h *Handler) deleteToDoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		jsonutil.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed")
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		jsonutil.WriteError(w, http.StatusNotFound, "todo_not_found")
+		return
+	}
+
+	key := makeKey(id)
+	removed := h.S.Del(key)
+
+	if removed {
+		ids, err := readIndex(h.S)
+		if err != nil {
+			jsonutil.WriteError(w, http.StatusInternalServerError, "read_index_error")
+			return
+		}
+
+		ids = removeID(ids, id)
+		if err := writeIndex(h.S, ids); err != nil {
+			jsonutil.WriteError(w, http.StatusInternalServerError, "write_index_error")
+			return
+		}
+	}
+	jsonutil.WriteJSON(w, http.StatusOK, map[string]bool{"deleted": removed})
 }
