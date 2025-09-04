@@ -12,6 +12,6 @@ I decided to dive into Go to refactor the back end of my Photo sharing app, Litt
 So NYMToDo is this POC/capstone project. It's just a simple Todo app on the surface, but it's core is a combination of multiple projects I built to further my undersanding. It was a fun project that had some headaches along the way. It was definitely worth the struggle, and I learned a lot.
 
 ## Project Links:
-[Gonk - Simple HTTP Framework](https://github.com/AJMerr/gonk)
-[MSE - Simple KV Data Store](https://github.com/AJMerr/MSE)
-[Parsec - Simple Reverse Proxy](https://github.com/AJMerr)
+- [Gonk - Simple HTTP Framework](https://github.com/AJMerr/gonk)
+- [MSE - Simple KV Data Store](https://github.com/AJMerr/MSE)
+- [Parsec - Simple Reverse Proxy](https://github.com/AJMerr)
