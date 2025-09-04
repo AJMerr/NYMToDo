@@ -27,7 +27,7 @@ func (h *Handler) RegisterRouter(r *router.Router) {
 	r.POST("/todos", h.createToDoHandler)
 	r.GET("/todos", h.getAllToDoHandler)
 	r.GET("/todos/{id}", h.getToDoHandler)
-	r.DELETE("/todos{id}", h.deleteToDoHandler)
+	r.DELETE("/todos/{id}", h.deleteToDoHandler)
 }
 
 // Helper functions
