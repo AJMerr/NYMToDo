@@ -11,6 +11,7 @@ import (
 
 	"github.com/AJMerr/MSE/pkg/store"
 	"github.com/AJMerr/NYMToDo/pkg/todo"
+	"github.com/AJMerr/gonk/pkg/jsonutil"
 	"github.com/AJMerr/gonk/pkg/router"
 )
 
@@ -25,6 +26,7 @@ func New(s *store.Store) *Handler {
 func (h *Handler) RegisterRouter(r *router.Router) {
 	r.POST("/todos", h.createToDoHandler)
 	r.GET("/todos", h.getAllToDoHandler)
+	r.GET("/todos/{id}", h.getToDoHandler)
 }
 
 // Helper functions
@@ -146,4 +148,33 @@ func (h *Handler) getAllToDoHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(out)
+}
+
+// GET by ID
+func (h *Handler) getToDoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		jsonutil.WriteError(w, http.StatusMethodNotAllowed, "{error: method_not_allowed}")
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		jsonutil.WriteError(w, http.StatusNotFound, "{error: todo_not_found}")
+		return
+	}
+
+	key := makeKey(id)
+	bytes, ok := h.S.Get(key)
+	if !ok {
+		jsonutil.WriteError(w, http.StatusNotFound, "{error: todo_not_found}")
+		return
+	}
+
+	var t todo.ToDo
+	err := json.Unmarshal(bytes, &t)
+	if err != nil {
+		jsonutil.WriteError(w, http.StatusInternalServerError, "{error: decode_error}")
+		return
+	}
+	jsonutil.WriteJSON(w, http.StatusOK, t)
 }
