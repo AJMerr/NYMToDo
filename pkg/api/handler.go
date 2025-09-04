@@ -28,6 +28,7 @@ func (h *Handler) RegisterRouter(r *router.Router) {
 	r.GET("/todos", h.getAllToDoHandler)
 	r.GET("/todos/{id}", h.getToDoHandler)
 	r.DELETE("/todos/{id}", h.deleteToDoHandler)
+	r.PATCH("/todos/{id}", h.patchToDoHandler)
 }
 
 // Helper functions
@@ -185,6 +186,84 @@ func (h *Handler) getToDoHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal(b, &t)
 	if err != nil {
 		jsonutil.WriteError(w, http.StatusInternalServerError, "decode_error")
+		return
+	}
+	jsonutil.WriteJSON(w, http.StatusOK, t)
+}
+
+// PATCH
+func (h *Handler) patchToDoHandler(w http.ResponseWriter, r *http.Request) {
+	// Shape of Patch Req
+	type patchRequest struct {
+		Title       *string `json:"title,omitempty"`
+		Description *string `json:"description,omitempty"`
+		IsCompleted *bool   `json:"is_completed,omitempty"`
+	}
+
+	if r.Method != http.MethodPatch {
+		jsonutil.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed")
+		return
+	}
+
+	id := r.PathValue("id")
+	if id == "" {
+		jsonutil.WriteError(w, http.StatusNotFound, "todo_not_found")
+		return
+	}
+
+	key := makeKey(id)
+	b, ok := h.S.Get(key)
+	if !ok {
+		jsonutil.WriteError(w, http.StatusNotFound, "todo_not_found")
+		return
+	}
+
+	var t todo.ToDo
+	err := json.Unmarshal(b, &t)
+	if err != nil {
+		jsonutil.WriteError(w, http.StatusInternalServerError, "decode_error")
+		return
+	}
+
+	var req patchRequest
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&req); err != nil {
+		jsonutil.WriteError(w, http.StatusNotFound, "invalid_json")
+		return
+	}
+
+	if req.Title == nil && req.Description == nil && req.IsCompleted == nil {
+		jsonutil.WriteError(w, http.StatusBadRequest, "empty_patch")
+		return
+	}
+
+	if req.Title != nil {
+		newTitle := strings.TrimSpace(*req.Title)
+		if newTitle == "" {
+			jsonutil.WriteError(w, http.StatusBadRequest, "missing_title")
+			return
+		}
+		t.Title = newTitle
+	}
+
+	if req.Description != nil {
+		newDescription := strings.TrimSpace(*req.Description)
+		t.Description = newDescription
+	}
+
+	if req.IsCompleted != nil {
+		t.IsCompleted = *req.IsCompleted
+	}
+
+	nb, err := json.Marshal(t)
+	if err != nil {
+		jsonutil.WriteError(w, http.StatusInternalServerError, "encode_error")
+		return
+	}
+
+	if err := h.S.Set(makeKey(id), nb); err != nil {
+		jsonutil.WriteError(w, http.StatusInternalServerError, "store_error")
 		return
 	}
 	jsonutil.WriteJSON(w, http.StatusOK, t)
