@@ -14,4 +14,4 @@ So NYMToDo is this POC/capstone project. It's just a simple Todo app on the surf
 ## Project Links:
 - [Gonk - Simple HTTP Framework](https://github.com/AJMerr/gonk)
 - [MSE - Simple KV Data Store](https://github.com/AJMerr/MSE)
-- [Parsec - Simple Reverse Proxy](https://github.com/AJMerr)
+- [Parsec - Simple Reverse Proxy](https://github.com/AJMerr/parsec)
