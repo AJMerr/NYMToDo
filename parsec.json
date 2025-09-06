@@ -1,0 +1,19 @@
+{
+  "listen": ":5173",
+  "routes": [
+    {
+      "match": { "prefix": "/api" },
+      "upstream": "http://localhost:8080",
+      "strip_prefix": "/api",
+      "preserve_host": false,
+      "add_headers": { "X-Parsec": "1", "X-Forwarded-App": "NYMToDo" }
+    },
+    {
+      "match": { "prefix": "/" },
+      "upstream": "http://localhost:5174",
+      "preserve_host": false
+    }
+  ],
+  "server_timeouts": { "read": "5s", "write": "10s", "idle": "60s" },
+  "proxy_timeouts":  { "dial": "5s", "tls_handshake": "5s", "idle_conn": "60s", "response_header": "10s" }
+}
