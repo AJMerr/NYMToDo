@@ -2,3 +2,5 @@ github.com/AJMerr/MSE v0.0.0-20250903031259-09d8232889cb h1:DbpYZmRAvHTqWvapB6OF
 github.com/AJMerr/MSE v0.0.0-20250903031259-09d8232889cb/go.mod h1:uhYo3OPuswKFqMwrG9ajSt6F/q3p84rh9IQYEe6bM0s=
 github.com/AJMerr/gonk v0.0.0-20250830053431-24813000cbfc h1:ASxE6s4T3B6eZME9Aor3cMVZQj0VeUyumgwNe2ZTPgk=
 github.com/AJMerr/gonk v0.0.0-20250830053431-24813000cbfc/go.mod h1:xlgJMRbyoY+83DRAepmcUnvmpGnJTkoUUQw74qnWJzs=
+github.com/AJMerr/parsec v0.0.0-20250905175429-b35efd201a42 h1:ttoNk1RMVNNzYzkplyfttquz1PkIxlYUlqBoIx/aKtw=
+github.com/AJMerr/parsec v0.0.0-20250905175429-b35efd201a42/go.mod h1:BXLf3MLNlZJhx5s9fa0tk3sdxZ8SnoMAnU3DMKHcvBc=
